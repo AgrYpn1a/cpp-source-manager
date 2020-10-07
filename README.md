@@ -1,4 +1,8 @@
 # C++ Source Manager
+### Supported VS versions
+If a version is supported it means that the plugin is tested and guaranteed to work with the version. This does not mean it won't work with other versions of VS. Versions:
+* VS2019
+
 ### Overview
 `C++ Source Manager` is a Visual Studio plugin that allows you to easily manage files and folders in a C++ project. The main advantage of this tool
 comparing to others or a default Visual Studio file manager is that it makes it possible to separate source files from project files.
