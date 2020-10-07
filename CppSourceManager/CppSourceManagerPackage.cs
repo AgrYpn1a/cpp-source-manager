@@ -52,7 +52,11 @@ namespace CppSourceManager
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Initialize commands
             await CppSourceManager.Commands.CreateFileCommand.InitializeAsync(this);
+            await CppSourceManager.Commands.CreateFolderCommand.InitializeAsync(this);
+            await CppSourceManager.Commands.HelpCommand.InitializeAsync(this);
 
             ms_DTE = this.GetService(typeof(DTE)) as DTE2;
             Logger.Initialize(this, "C++ File Manager");

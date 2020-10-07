@@ -49,6 +49,8 @@
     <Compile Include="Attributes\ExtensionNameAttribute.cs" />
     <Compile Include="Attributes\StringifiedAttribute.cs" />
     <Compile Include="Commands\CreateFileCommand.cs" />
+    <Compile Include="Commands\CreateFolderCommand.cs" />
+    <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="MVVM\Commands\CreateCommand.cs" />
     <Compile Include="MVVM\CreateFile\CreateFileModel.cs" />
     <Compile Include="MVVM\CreateFile\CreateFileViewModel.cs" />
@@ -67,6 +69,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -176,22 +181,20 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.7.3069" />
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="Commands\CppSourceManagerPackage.vsct">
+    <VSCTCompile Include="CppSourceManagerPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Commands\Resources\CreateFileCommand.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="Commands\Resources\TestCommand.png" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="View\CreateFileWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\CreateFileCommand.png" />
+    <Content Include="Resources\CreateFolderCommand.png" />
+    <Content Include="Resources\Default.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

@@ -1,7 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
+using CppSourceManager.Commands;
 using CppSourceManager.MVVM.CreateFile;
+using EnvDTE;
+using Microsoft.VisualStudio.OLE.Interop;
 
 namespace CppSourceManager.MVVM.Commands
 {
@@ -48,6 +52,16 @@ public:
             string cppTemplate = Templates.CPP_SOURCE_TEMPLATE;
             cppTemplate = cppTemplate.Replace("\\n", Environment.NewLine);
             cppTemplate = cppTemplate.Replace("$ClassName", m_CreateFileModel.ClassName);
+
+            if(File.Exists(m_CreateFileModel.CppSourcePath) || File.Exists(m_CreateFileModel.HppSourcePath))
+            {
+                MessageBox.Show("Files with the same name already exist!");
+                return;
+            }
+
+            // Make sure directories exist
+            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(m_CreateFileModel.CppSourcePath));
+            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(m_CreateFileModel.HppSourcePath));
 
             File.WriteAllText(m_CreateFileModel.CppSourcePath, cppTemplate);
             File.WriteAllText(m_CreateFileModel.HppSourcePath, hppTemplate);
