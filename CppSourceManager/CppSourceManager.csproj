@@ -51,6 +51,7 @@
     <Compile Include="Commands\CreateFileCommand.cs" />
     <Compile Include="Commands\CreateFolderCommand.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="MVVM\Commands\CancelCommand.cs" />
     <Compile Include="MVVM\Commands\CreateCommand.cs" />
     <Compile Include="MVVM\CreateFile\CreateFileModel.cs" />
     <Compile Include="MVVM\CreateFile\CreateFileViewModel.cs" />

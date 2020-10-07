@@ -300,12 +300,17 @@ namespace CppSourceManager.Utils
                     {
                         folder = fileName;
                     }
-
-
                 }
                 else if (project != null)
                 {
-                    folder = project.FullName;
+                    string codeName = project.CodeModel.CodeElements.Item(0).Name;
+                    foreach (ProjectItem projItem in project.ProjectItems)
+                    {
+                        string code = projItem.FileCodeModel.CodeElements.Item(0).Name;
+                        string fileName = projItem.FileNames[0];
+                        folder = Path.GetDirectoryName(fileName);
+                    }
+                    //folder = project.FullName;
                 }
             }
 
@@ -313,22 +318,34 @@ namespace CppSourceManager.Utils
             // so we need to calculate folder path in a different way
             if (folder == null)
             {
-                string projName = projectItem.ContainingProject.FullName;
-                string prjItem = projectItem.Name;
-                ProjectItem parent = projectItem.Properties.Parent as ProjectItem;
-                string prjItemFullName = projectItem.DTE.FullName;
-                string prjItemParent = parent.Name;
-                string prnt = ((ProjectItem)projectItem.ProjectItems.Parent).Name;
-            }
+                //string projName = projectItem.ContainingProject.FullName;
+                //string prjItem = projectItem.Name;
+                //ProjectItem parent = projectItem.Properties.Parent as ProjectItem;
+                //string prjItemFullName = projectItem.DTE.FullName;
+                //string prjItemParent = parent.Name;
+                //string prnt = ((ProjectItem)projectItem.ProjectItems.Parent).Name;
 
-            string projectRoot = null;
-            foreach (ProjectItem projItem in projectItem.ContainingProject.ProjectItems)
-            {
-                if (File.Exists(projItem.FileNames[1]))
+                Project project = item as Project;
+                if (project != null)
                 {
-                    projectRoot = Path.GetDirectoryName(projItem.FileNames[1]);
+                    folder = project.FullName;
                 }
             }
+
+            //if(projectItem == null)
+            //{
+            //}
+            //else
+            //{
+            //    string projectRoot = null;
+            //    foreach (ProjectItem projItem in projectItem.ContainingProject.ProjectItems)
+            //    {
+            //        if (File.Exists(projItem.FileNames[1]))
+            //        {
+            //            projectRoot = Path.GetDirectoryName(projItem.FileNames[1]);
+            //        }
+            //    }
+            //}
 
             return folder;
         }

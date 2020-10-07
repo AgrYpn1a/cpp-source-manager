@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using CppSourceManager.MVVM.Commands;
 
 namespace CppSourceManager.MVVM.CreateFile
@@ -92,6 +94,8 @@ namespace CppSourceManager.MVVM.CreateFile
             }
         }
 
+        public bool IsCancelled { get; set; }
+
         private string m_FileName = "ExampleClass";
         public string FileName
         {
@@ -142,13 +146,16 @@ namespace CppSourceManager.MVVM.CreateFile
         public event PropertyChangedEventHandler PropertyChanged;
 
         public ICommand CreateFileCmd { get; private set; }
+        public ICommand CancelCmd { get; private set; }
 
         public readonly CreateFileViewModel m_ViewModel;
 
         public CreateFileModel(CreateFileViewModel viewModel)
         {
             m_ViewModel = viewModel;
-            CreateFileCmd = new CreateCommand(this);
+
+            CreateFileCmd   = new CreateCommand(this);
+            CancelCmd       = new CancelCommand(this);
         }
 
     }
