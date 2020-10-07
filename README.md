@@ -18,6 +18,14 @@ projects\
 ```
 which makes it easier to use any build system, for example **Make** or **CMake**, to genarate project files for Visual Studio or similar IDEs.
 
+#### Usage
+1. Right click on the existing folder (filter) / project to access the plugin menu.
+![Accces Plugin](Images/Screenshot_1.png)
+
+2. Name of the folder is relative to the folder (project) you selected. Change file name, pick any other option and change folder if necessary. If folder does
+not exist, it will be automatically added.
+![Plugin](Images/Screenshot_2.png)
+
 ### Features
 Currently, `C++ Source Manager` supports
   - Creating a new source file (Automatically creates .cpp and .h files with very basic class template)
