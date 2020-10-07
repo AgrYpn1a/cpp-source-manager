@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,7 +50,23 @@ namespace CppSourceManager.MVVM.CreateFile
             set
             {
                 m_ProjectRootDirPath = value;
+
+                string dir = value.Split('\\').Last().ToString();
+                FilePath = dir;
+
                 FileName = FileName; // Trigger update
+            }
+        }
+
+        private string m_FilePath = @"C:\";
+        public string FilePath
+        {
+            get => m_FilePath;
+            set
+            {
+                m_FilePath = value;
+                FileName = FileName; // Trigger update
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FilePath)));
             }
         }
 
@@ -83,12 +100,18 @@ namespace CppSourceManager.MVVM.CreateFile
             {
                 m_FileName = value;
 
-                CppSourcePath = m_ViewModel.GetTransformedFileName(ProjectRootDirPath, m_FileName, FileType.CPP);
-                HppSourcePath = m_ViewModel.GetTransformedFileName(ProjectRootDirPath, m_FileName, FileType.H);
+                // TODO make this more optimal, maybe calculate only once when RootDir is initialized
+                string[] dirs = ProjectRootDirPath.Split('\\');
+                dirs = dirs.Take(dirs.Length - 1).ToArray();
+                dirs[0] = dirs[0] + "\\";
+                string parentDir = Path.Combine(dirs);
+
+                CppSourcePath = m_ViewModel.GetTransformedFileName(Path.Combine(parentDir, FilePath), m_FileName, FileType.CPP);
+                HppSourcePath = m_ViewModel.GetTransformedFileName(Path.Combine(parentDir, FilePath), m_FileName, FileType.H);
 
                 if (OptionsHppChecked)
                 {
-                    HppSourcePath = m_ViewModel.GetTransformedFileName(ProjectRootDirPath, m_FileName, FileType.HPP);
+                    HppSourcePath = m_ViewModel.GetTransformedFileName(Path.Combine(parentDir, FilePath), m_FileName, FileType.HPP);
                 }
 
                 //CppSourcePath = $@"{ProjectRootDirPath}\{m_FileName}.cpp";

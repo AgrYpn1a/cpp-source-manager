@@ -1,6 +1,0 @@
-﻿#include "$ClassName.h"
-
-$ClassName::$ClassName()
-{
-
-}

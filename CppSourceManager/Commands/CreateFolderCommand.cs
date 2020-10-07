@@ -1,13 +1,13 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Windows.Forms;
+using System.Threading;
+using System.Threading.Tasks;
 using CppSourceManager.Utils;
-using CppSourceManager.View;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace CppSourceManager.Commands
@@ -15,12 +15,12 @@ namespace CppSourceManager.Commands
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class CreateFileCommand
+    internal sealed class CreateFolderCommand
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0101;
+        public const int CommandId = 0x0102;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -31,18 +31,14 @@ namespace CppSourceManager.Commands
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
-        private readonly CppSourceManagerPackage m_CppSourceManagerPackage;
-
-        private string m_CppFilePath = "";
-        private string m_HppFilePath = "";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateFileCommand"/> class.
+        /// Initializes a new instance of the <see cref="CreateFolderCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private CreateFileCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private CreateFolderCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -50,14 +46,12 @@ namespace CppSourceManager.Commands
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
-
-            m_CppSourceManagerPackage = this.package as CppSourceManagerPackage;
         }
 
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static CreateFileCommand Instance
+        public static CreateFolderCommand Instance
         {
             get;
             private set;
@@ -80,14 +74,12 @@ namespace CppSourceManager.Commands
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in CreateFileCommand's constructor requires
+            // Switch to the main thread - the call to AddCommand in CreateFolderCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new CreateFileCommand(package, commandService);
-
-            //_dte = await Instance.ServiceProvider.GetServiceAsync(typeof(DTE)) as DTE2;
+            Instance = new CreateFolderCommand(package, commandService);
         }
 
         /// <summary>
@@ -119,37 +111,10 @@ namespace CppSourceManager.Commands
                 return;
             }
 
-            // Get files
-            PromptForFileName(folder);
 
-            var cppInfo = new FileInfo(m_CppFilePath);
-            var hppInfo = new FileInfo(m_HppFilePath);
+            var dirInfo = Directory.CreateDirectory(Path.Combine(folder, "mynewdir"));
+            project.AddFolderToProject(dirInfo);
 
-            ProjectItem projectItemCpp = project.AddFileToProject(cppInfo);
-            ProjectItem projectItemHpp = project.AddFileToProject(hppInfo);
-
-            project.Save();
-
-            VsShellUtilities.OpenDocument(this.package, cppInfo.FullName);
-            VsShellUtilities.OpenDocument(this.package, hppInfo.FullName);
-
-            CppSourceManagerPackage.ms_DTE.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
-            CppSourceManagerPackage.ms_DTE.ActiveDocument.Activate();
-        }
-
-
-        private void PromptForFileName(string rootFolder)
-        {
-            DirectoryInfo dir = new DirectoryInfo(rootFolder);
-            FileDialog dialog = new OpenFileDialog();
-
-            CreateFileWindow createFileWin = new CreateFileWindow();
-            createFileWin.Model.ProjectRootDirPath = rootFolder;
-
-            createFileWin.ShowDialog();
-
-            m_CppFilePath = createFileWin.Model.CppSourcePath;
-            m_HppFilePath = createFileWin.Model.HppSourcePath;
         }
     }
 }
