@@ -21,10 +21,5 @@ namespace CppSourceManager.View
             Model = m_ViewModel.Model;
             DataContext = Model;
         }
-
-        private void Button_Cancel(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
     }
 }

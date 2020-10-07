@@ -109,10 +109,10 @@
 			<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
 		</CommandPlacement>
 
-		<CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" priority="0x0001">
-			<!-- The parent of the group will be the solution context menu -->
+		<!--<CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" priority="0x0001">
+			--><!-- The parent of the group will be the solution context menu --><!--
 			<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
-		</CommandPlacement>
+		</CommandPlacement>-->
 
 		<CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="ProjectFolderSubmenu" priority="0x1000">
 			<Parent guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" />

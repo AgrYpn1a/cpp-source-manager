@@ -120,25 +120,25 @@ namespace CppSourceManager.Commands
             }
 
             // Get files
-            PromptForFileName(folder);
+            if (PromptForFileName(folder))
+            {
+                var cppInfo = new FileInfo(m_CppFilePath);
+                var hppInfo = new FileInfo(m_HppFilePath);
 
-            var cppInfo = new FileInfo(m_CppFilePath);
-            var hppInfo = new FileInfo(m_HppFilePath);
+                ProjectItem projectItemCpp = project.AddFileToProject(cppInfo);
+                ProjectItem projectItemHpp = project.AddFileToProject(hppInfo);
 
-            ProjectItem projectItemCpp = project.AddFileToProject(cppInfo);
-            ProjectItem projectItemHpp = project.AddFileToProject(hppInfo);
+                project.Save();
 
-            project.Save();
+                VsShellUtilities.OpenDocument(this.package, cppInfo.FullName);
+                VsShellUtilities.OpenDocument(this.package, hppInfo.FullName);
 
-            VsShellUtilities.OpenDocument(this.package, cppInfo.FullName);
-            VsShellUtilities.OpenDocument(this.package, hppInfo.FullName);
-
-            CppSourceManagerPackage.ms_DTE.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
-            CppSourceManagerPackage.ms_DTE.ActiveDocument.Activate();
+                CppSourceManagerPackage.ms_DTE.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
+                CppSourceManagerPackage.ms_DTE.ActiveDocument.Activate();
+            }
         }
 
-
-        private void PromptForFileName(string rootFolder)
+        private bool PromptForFileName(string rootFolder)
         {
             DirectoryInfo dir = new DirectoryInfo(rootFolder);
             FileDialog dialog = new OpenFileDialog();
@@ -150,6 +150,8 @@ namespace CppSourceManager.Commands
 
             m_CppFilePath = createFileWin.Model.CppSourcePath;
             m_HppFilePath = createFileWin.Model.HppSourcePath;
+
+            return !createFileWin.Model.IsCancelled;
         }
     }
 }

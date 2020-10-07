@@ -60,7 +60,7 @@
 
             <!-- Bottom control buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10 10" Grid.Row="2" >
-                <Button Click="Button_Cancel" Content="Cancel" Margin="5 0" FontFamily="Roboto" Height="20" VerticalAlignment="Top" />
+                <Button Command="{Binding CancelCmd, UpdateSourceTrigger=PropertyChanged}" Content="Cancel" Margin="5 0" FontFamily="Roboto" Height="20" VerticalAlignment="Top" />
                 <Button Command="{Binding CreateFileCmd, UpdateSourceTrigger=PropertyChanged}" Content="Create" FontFamily="Roboto" />
             </StackPanel>
         </Grid>
