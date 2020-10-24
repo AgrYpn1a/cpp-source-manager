@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
@@ -73,7 +75,7 @@ namespace CppSourceManager.Utils
             return null;
         }
 
-        public static ProjectItem AddFileToProject(this Project project, FileInfo file, string itemType = null)
+        public static ProjectItem AddFileToProject(this Project project, FileInfo newSourceFile, string itemType = null)
         {
             string root = project.FullName;
 
@@ -82,63 +84,146 @@ namespace CppSourceManager.Utils
                 return null;
             }
 
-            // Find folder
-            string filePath = file.DirectoryName;
-            int indexOfProjectNameSubstr = filePath.IndexOf(project.Name.ToLower());
-            string filterString = filePath.Substring(indexOfProjectNameSubstr + project.Name.Length + 1); // +1 for \\
-
-            var filters = filterString.Split('\\');
-
-            // Add multilevel filters
-            ProjectItem item = project.ProjectItems.Item(filters[0]);
-            ProjectItem lastItem = item;
-
+            // TODO should refactor bunch of stuff here, get this in another place etc...
+            // Fetch the active project
             EnvDTE.DTE dte = (EnvDTE.DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
             VCProject prj = (VCProject)dte.Solution.Projects.Item(1).Object;
 
+            // Get the source root
+            string sourceRoot = string.Empty;
+            IVCCollection projectFiles = prj.Files as IVCCollection;
 
-            if (item == null)
+            foreach (VCFile prjFile in projectFiles)
             {
-                // Top level dir
-                prj.AddFilter(filters[0]);
-                item = project.ProjectItems.Item(filters[0]);
+                // If it's an actual file
+                if (prjFile.FullPath.Contains(".cpp") || prjFile.FullPath.Contains(".h"))
+                {
+                    //string fullPath = prjFile.FullPath;
+                    //string[] fpDirs = fullPath.Split('\\');
+                    //string[] newFpDirs = newSourceFile.DirectoryName.Split('\\');
+                    //var result = fpDirs.Intersect(newFpDirs, StringComparer.OrdinalIgnoreCase).ToArray();
+
+                    sourceRoot = string.Concat(prjFile.FullPath.TakeWhile((c, i) => c == newSourceFile.DirectoryName[i]));
+                    break;
+                }
             }
 
-            for (int i = 1; i < filters.Length; i++)
+            // This means that the project has no files atm, so we do not know
+            // where the source files should be stored!
+            if (sourceRoot == string.Empty)
             {
-                item = item.ProjectItems.Item(filters[i]);
+                MessageBox.Show("Can't find the source files location!");
+                return null;
+            }
+
+            // We can add filters
+            // Find folder
+            string filePath = newSourceFile.DirectoryName.Replace(sourceRoot, ""); // Get rid of the path until source root
+            Queue<string> filterQueue = new Queue<string>(filePath.Split('\\'));
+
+            // Now add the missing filters
+            ProjectItem item = project.ProjectItems.Item(filterQueue.Peek());
+            ProjectItem lastItem = item;
+            VCFilter filter = null;
+
+            IVCCollection projFilters = prj.Filters as IVCCollection;
+
+            // Initialize filter
+            foreach (VCFilter _filter in projFilters)
+            {
+                if (_filter.CanonicalName.Equals(filterQueue.Peek()))
+                {
+                    filter = _filter;
+                    break;
+                }
+            }
+
+            // Root filter
+            if (item == null)
+            {
+                filter = (VCFilter) prj.AddFilter(filterQueue.Peek());
+
+                // Reload item
+                item = project.ProjectItems.Item(filterQueue.Peek());
+            }
+
+            filterQueue.Dequeue();
+
+            while (filterQueue.Count > 0)
+            {
+                item = item.ProjectItems.Item(filterQueue.Peek());
 
                 if (item == null)
                 {
-                    //string canonicalFilterName = Path.Combine(filters.Take(i + 1).ToArray());
-                    string canonicalFilterName = string.Join(Path.DirectorySeparatorChar.ToString(), filters.Take(i).ToArray());
-                    //prj.AddFilter(canonicalFilterName);
-
-                    foreach (VCFilter fltr in prj.Filters)
-                    {
-                        if (fltr.CanonicalName == canonicalFilterName)
-                        {
-                            // to i + 1 to add the next filter
-                            for (int j = i; j < filters.Length; j++)
-                            {
-                                if (fltr.CanAddFilter(filters[i]))
-                                {
-                                    fltr.AddFilter(filters[j]);
-                                }
-                            }
-                        }
-                    }
-
-                    prj.Save();
-
-                    item = lastItem.ProjectItems.Item(filters[i]);
+                    filter = (VCFilter) filter.AddFilter(filterQueue.Peek());
+                    item = lastItem.ProjectItems.Item(filterQueue.Peek());
                 }
 
+
+                prj.Save();
+
+                item = lastItem.ProjectItems.Item(filterQueue.Peek());
                 lastItem = item;
+
+                filterQueue.Dequeue();
             }
 
-            item.ProjectItems.AddFromFile(file.FullName);
-            item.SetItemType(itemType);
+            //int indexOfProjectNameSubstr = filePath.IndexOf($"{project.Name}", StringComparison.OrdinalIgnoreCase);
+            //string filterString = filePath.Substring(indexOfProjectNameSubstr + project.Name.Length + 1); // +1 for \\
+
+            //var filters = filterString.Split('\\');
+
+            //// Add multilevel filters
+            //ProjectItem item = project.ProjectItems.Item(filters[0]);
+            //ProjectItem lastItem = item;
+
+            //EnvDTE.DTE dte = (EnvDTE.DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
+            //VCProject prj = (VCProject)dte.Solution.Projects.Item(1).Object;
+
+
+            //if (item == null)
+            //{
+            //    // Top level dir
+            //    prj.AddFilter(filters[0]);
+            //    item = project.ProjectItems.Item(filters[0]);
+            //}
+
+            //for (int i = 1; i < filters.Length; i++)
+            //{
+            //    item = item.ProjectItems.Item(filters[i]);
+
+            //    if (item == null)
+            //    {
+            //        //string canonicalFilterName = Path.Combine(filters.Take(i + 1).ToArray());
+            //        string canonicalFilterName = string.Join(Path.DirectorySeparatorChar.ToString(), filters.Take(i).ToArray());
+            //        //prj.AddFilter(canonicalFilterName);
+
+            //        foreach (VCFilter fltr in prj.Filters)
+            //        {
+            //            if (fltr.CanonicalName == canonicalFilterName)
+            //            {
+            //                // to i + 1 to add the next filter
+            //                for (int j = i; j < filters.Length; j++)
+            //                {
+            //                    if (fltr.CanAddFilter(filters[i]))
+            //                    {
+            //                        fltr.AddFilter(filters[j]);
+            //                    }
+            //                }
+            //            }
+            //        }
+
+            //        prj.Save();
+
+            //        item = lastItem.ProjectItems.Item(filters[i]);
+            //    }
+
+            //    lastItem = item;
+            //}
+
+            //filter.AddFile(newSourceFile.FullName);
+            lastItem.ProjectItems.AddFromFile(newSourceFile.FullName);
+            lastItem.SetItemType(itemType);
 
             return item;
         }
@@ -155,14 +240,14 @@ namespace CppSourceManager.Utils
             EnvDTE.DTE dte = (EnvDTE.DTE)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SDTE));
             VCProject prj = (VCProject)dte.Solution.Projects.Item(1).Object;
 
-            foreach (var filter in prj.Filters)
-            {
-                var vcFilter = (VCFilter)filter;
-                if (vcFilter.Name == "core")
-                {
-                    vcFilter.AddFilter("newdir");
-                }
-            }
+            //foreach (var filter in prj.Filters)
+            //{
+            //    var vcFilter = (VCFilter)filter;
+            //    if (vcFilter.Name == "core")
+            //    {
+            //        vcFilter.AddFilter("newdir");
+            //    }
+            //}
 
             //VCFilter[] filters = prj.Filters;
             //var filters = (VCFilter[])prj.Filters;
@@ -329,6 +414,11 @@ namespace CppSourceManager.Utils
                 if (project != null)
                 {
                     folder = project.FullName;
+                }
+                else
+                {
+                    ProjectItem prjItem = item as ProjectItem;
+                    folder = Path.GetDirectoryName(prjItem.ContainingProject.FullName);
                 }
             }
 

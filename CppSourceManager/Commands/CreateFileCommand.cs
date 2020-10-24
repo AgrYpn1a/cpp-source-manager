@@ -1,13 +1,15 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Globalization;
 using System.IO;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CppSourceManager.Utils;
 using CppSourceManager.View;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace CppSourceManager.Commands
@@ -25,16 +27,15 @@ namespace CppSourceManager.Commands
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("24b2b04a-3bb1-4149-b6cd-4dd826133f98");
+        public static readonly Guid CommandSet = new Guid("f4d09845-4149-48f3-aad8-a0c88fd54007");
+
+        private string m_CppFilePath = "";
+        private string m_HppFilePath = "";
 
         /// <summary>
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
-        private readonly CppSourceManagerPackage m_CppSourceManagerPackage;
-
-        private string m_CppFilePath = "";
-        private string m_HppFilePath = "";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateFileCommand"/> class.
@@ -50,8 +51,6 @@ namespace CppSourceManager.Commands
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
-
-            m_CppSourceManagerPackage = this.package as CppSourceManagerPackage;
         }
 
         /// <summary>
@@ -84,10 +83,8 @@ namespace CppSourceManager.Commands
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+            OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new CreateFileCommand(package, commandService);
-
-            //_dte = await Instance.ServiceProvider.GetServiceAsync(typeof(DTE)) as DTE2;
         }
 
         /// <summary>
@@ -97,10 +94,8 @@ namespace CppSourceManager.Commands
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private async void Execute(object sender, EventArgs e)
+        private void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             object item = ProjectUtils.GetSelectedItem();
             string folder = ProjectUtils.FindFolder(item);
 
@@ -127,6 +122,13 @@ namespace CppSourceManager.Commands
 
                 ProjectItem projectItemCpp = project.AddFileToProject(cppInfo);
                 ProjectItem projectItemHpp = project.AddFileToProject(hppInfo);
+
+                if (projectItemCpp == null || projectItemHpp == null)
+                {
+                    // We have a problem here!
+                    MessageBox.Show("Could not create project files!");
+                    return;
+                }
 
                 project.Save();
 
