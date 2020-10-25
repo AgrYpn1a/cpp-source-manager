@@ -124,7 +124,6 @@
 
       <Bitmap guid="createFileIcon" href="Resources\CreateFileCommand.png" usedList="createFileIcon1" />
       <Bitmap guid="defaultIcons" href="Resources\Default.png" usedList="defaultIcons1,defaultIcons2,defaultIcons3,defaultIcons4" />
-      <Bitmap guid="guidImages" href="Commands\Resources\RemoveCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
 
@@ -137,6 +136,11 @@
     <CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" priority="0x0001">
       <!--The parent of the group will be the solution context menu-->
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" priority="0x0001">
+      <!--The parent of the group will be the solution context menu-->
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE" />
     </CommandPlacement>
 
     <CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" priority="0x0001">

@@ -2,14 +2,14 @@
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using CppSourceManager.Utils;
-using CppSourceManager.View;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.VCProjectEngine;
 using Task = System.Threading.Tasks.Task;
 
 namespace CppSourceManager.Commands
@@ -17,20 +17,17 @@ namespace CppSourceManager.Commands
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class CreateFileCommand
+    internal sealed class RemoveCommand
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0101;
+        public const int CommandId = 0x0102;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
         public static readonly Guid CommandSet = new Guid("f4d09845-4149-48f3-aad8-a0c88fd54007");
-
-        private string m_CppFilePath = "";
-        private string m_HppFilePath = "";
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -38,12 +35,12 @@ namespace CppSourceManager.Commands
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateFileCommand"/> class.
+        /// Initializes a new instance of the <see cref="RemoveCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private CreateFileCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private RemoveCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -56,7 +53,7 @@ namespace CppSourceManager.Commands
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static CreateFileCommand Instance
+        public static RemoveCommand Instance
         {
             get;
             private set;
@@ -79,12 +76,12 @@ namespace CppSourceManager.Commands
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in CreateFileCommand's constructor requires
+            // Switch to the main thread - the call to AddCommand in RemoveCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-            Instance = new CreateFileCommand(package, commandService);
+            Instance = new RemoveCommand(package, commandService);
         }
 
         /// <summary>
@@ -99,62 +96,69 @@ namespace CppSourceManager.Commands
             ThreadHelper.ThrowIfNotOnUIThread();
 
             object item = ProjectUtils.GetSelectedItem();
-            string folder = ProjectUtils.FindFolder(item);
-
-            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
-            {
-                return;
-            }
-
             ProjectItem selectedItem = item as ProjectItem;
-            Project selectedProject = item as Project;
-            Project project = selectedItem?.ContainingProject ?? selectedProject ?? ProjectUtils.GetActiveProject();
+            VCFilter selectedFilter = item as VCFilter;
 
-            if (project == null)
+            try
             {
-                throw new Exception("Could not find project!"); // TODO remove exception after testing
-            }
-
-            // Get files
-            if (PromptForFileName(folder))
-            {
-                var cppInfo = new FileInfo(m_CppFilePath);
-                var hppInfo = new FileInfo(m_HppFilePath);
-
-                ProjectItem projectItemCpp = project.AddFileToProject(cppInfo);
-                ProjectItem projectItemHpp = project.AddFileToProject(hppInfo);
-
-                if (projectItemCpp == null || projectItemHpp == null)
+                // It's a source file
+                if (selectedItem.ProjectItems.Item(1) == null)
                 {
-                    // We have a problem here!
-                    MessageBox.Show("Could not create project files!");
-                    return;
+                    // Just remove the source file
+                    string targetPath = selectedItem.Properties.Item("FullPath").Value as string;
+                    string dir = Path.GetDirectoryName(targetPath);
+
+                    if (Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Length <= 1)
+                    {
+                        // If this is the last source file in the dir, remove everything
+                        Directory.Delete(dir, true);
+
+                        ProjectItem parent = selectedItem.Properties.Parent as ProjectItem;
+                        parent = parent.Properties.Parent as ProjectItem;
+
+                        if (parent == null)
+                        {
+                            parent = selectedItem.Properties.Parent as ProjectItem;
+                        }
+
+                        //selectedItem.Remove();
+                        string parentName = parent.Name;
+                        string parParentName = (parent.Properties.Parent as ProjectItem).Name;
+                        //string collName = selectedItem.Collection.;
+
+                        parent.Remove();
+                        parent.ContainingProject.Save();
+                    }
+                    else
+                    {
+                        // Remove physical file from the disk
+                        File.Delete(targetPath);
+
+                        // Remove file from the project
+                        selectedItem.Remove();
+                        selectedItem.ContainingProject.Save();
+                    }
                 }
-
-                project.Save();
-
-                VsShellUtilities.OpenDocument(this.package, cppInfo.FullName);
-                VsShellUtilities.OpenDocument(this.package, hppInfo.FullName);
-
-                CppSourceManagerPackage.ms_DTE.ExecuteCommand("SolutionExplorer.SyncWithActiveDocument");
-                CppSourceManagerPackage.ms_DTE.ActiveDocument.Activate();
+                else
+                {
+                    RemoveDir(selectedItem);
+                }
+            }
+            catch (Exception exc)
+            {
+                // It's a filter (folder)
             }
         }
 
-        private bool PromptForFileName(string rootFolder)
+        private void RemoveDir(ProjectItem item)
         {
-            DirectoryInfo dir = new DirectoryInfo(rootFolder);
-            FileDialog dialog = new OpenFileDialog();
+            string childItem = item.ProjectItems.Item(1).FileNames[1];
+            string dir = Path.GetDirectoryName(childItem);
 
-            CreateFileWindow createFileWin = new CreateFileWindow();
-            createFileWin.Model.ProjectRootDirPath = rootFolder;
+            Directory.Delete(dir, true);
 
-            createFileWin.ShowDialog();
-
-            m_CppFilePath = createFileWin.Model.CppSourcePath;
-            m_HppFilePath = createFileWin.Model.HppSourcePath;
-
-            return !createFileWin.Model.IsCancelled;
+            item.Remove();
+            item.ContainingProject.Save();
         }
     }
 }

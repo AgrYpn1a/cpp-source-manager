@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="CppSourceManager.c3091291-8753-4437-b022-b982c5de2e5f" Version="1.11" Language="en-US" Publisher="RTojagic" />
+        <Identity Id="CppSourceManager.c3091291-8753-4437-b022-b982c5de2e5f" Version="1.12" Language="en-US" Publisher="RTojagic" />
         <DisplayName>C++ Source Manager</DisplayName>
         <Description xml:space="preserve">C++ Source Manager is an extension that allows you to easily create and modify source files (and folders) in C++ projects where the source is located in a separate directory.</Description>
         <Icon>logo.png</Icon>

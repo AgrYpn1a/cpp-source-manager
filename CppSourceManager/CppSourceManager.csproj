@@ -58,6 +58,7 @@
     <Compile Include="Attributes\ExtensionNameAttribute.cs" />
     <Compile Include="Attributes\StringifiedAttribute.cs" />
     <Compile Include="Commands\CreateFileCommand.cs" />
+    <Compile Include="Commands\RemoveCommand.cs" />
     <Compile Include="CppSourceManagerPackage.cs" />
     <Compile Include="GeneralSettings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -101,6 +102,7 @@
     <Content Include="Resources\CppSourceManagerPackage.ico" />
     <Content Include="Resources\CreateFolderCommand.png" />
     <Content Include="Resources\Default.png" />
+    <Content Include="Resources\logo.png" />
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
