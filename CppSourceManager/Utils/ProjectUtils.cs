@@ -98,11 +98,6 @@ namespace CppSourceManager.Utils
                 // If it's an actual file
                 if (prjFile.FullPath.Contains(".cpp") || prjFile.FullPath.Contains(".h"))
                 {
-                    //string fullPath = prjFile.FullPath;
-                    //string[] fpDirs = fullPath.Split('\\');
-                    //string[] newFpDirs = newSourceFile.DirectoryName.Split('\\');
-                    //var result = fpDirs.Intersect(newFpDirs, StringComparer.OrdinalIgnoreCase).ToArray();
-
                     sourceRoot = string.Concat(prjFile.FullPath.TakeWhile((c, i) => c == newSourceFile.DirectoryName[i]));
                     break;
                 }
@@ -141,12 +136,14 @@ namespace CppSourceManager.Utils
             // Root filter
             if (item == null)
             {
-                filter = (VCFilter) prj.AddFilter(filterQueue.Peek());
+                filter = (VCFilter)prj.AddFilter(filterQueue.Peek());
 
                 // Reload item
                 item = project.ProjectItems.Item(filterQueue.Peek());
+                lastItem = item;
             }
 
+            string newFilterCanonPath = filterQueue.Peek();
             filterQueue.Dequeue();
 
             while (filterQueue.Count > 0)
@@ -155,14 +152,28 @@ namespace CppSourceManager.Utils
 
                 if (item == null)
                 {
-                    filter = (VCFilter) filter.AddFilter(filterQueue.Peek());
+                    filter = (VCFilter)filter.AddFilter(filterQueue.Peek());
+                    newFilterCanonPath = string.Join("\\", newFilterCanonPath, filterQueue.Peek());
+                    prj.Save();
+
                     item = lastItem.ProjectItems.Item(filterQueue.Peek());
                 }
+                else
+                {
+                    newFilterCanonPath = string.Join("\\", newFilterCanonPath, filterQueue.Peek());
 
+                    // Must update the filter
+                    foreach (VCFilter _filter in (IVCCollection)prj.Filters)
+                    {
+                        if (_filter.CanonicalName.Equals(newFilterCanonPath))
+                        {
+                            filter = _filter;
+                            break;
+                        }
+                    }
+                }
 
                 prj.Save();
-
-                item = lastItem.ProjectItems.Item(filterQueue.Peek());
                 lastItem = item;
 
                 filterQueue.Dequeue();

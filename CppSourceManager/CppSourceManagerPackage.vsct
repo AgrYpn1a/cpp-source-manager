@@ -58,6 +58,9 @@
       <Group guid="guidCppSourceManagerPackageCmdSet" id="GroupSubmenu" />
       <Group guid="guidCppSourceManagerPackageCmdSet" id="GroupCommands" />
       <Group guid="guidCppSourceManagerPackageCmdSet" id="GroupAbout" />
+      <Group guid="guidCppSourceManagerPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
     </Groups>
 
     <Menus>
@@ -76,7 +79,6 @@
     or combo box in a toolbar.-->
 
     <Buttons>
-
       <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
       The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
       the CommandFlag node.
@@ -84,7 +86,6 @@
       <CommandFlag>DefaultInvisible</CommandFlag>
       <CommandFlag>DynamicVisibility</CommandFlag>
       If you do not want an image next to your command, remove the Icon node />-->
-
       <Button guid="guidCppSourceManagerPackageCmdSet" id="CreateFileCommandId" priority="0x0200" type="Button">
         <Icon guid="createFileIcon" id="createFileIcon1" />
         <Strings>
@@ -92,11 +93,10 @@
         </Strings>
       </Button>
 
-
-      <Button guid="guidCppSourceManagerPackageCmdSet" id="CreateFolderCommandId" priority="0x0300" type="Button">
-        <Icon guid="createFolderIcon" id="createFolderIcon1" />
+      <Button guid="guidCppSourceManagerPackageCmdSet" id="RemoveCommandId" priority="0x0200" type="Button">
+        <Icon guid="defaultIcons" id="defaultIcons4" />
         <Strings>
-          <ButtonText>New C++ Source Directory</ButtonText>
+          <ButtonText>Remove</ButtonText>
         </Strings>
       </Button>
 
@@ -105,11 +105,16 @@
           <ButtonText>Help</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidCppSourceManagerPackageCmdSet1" id="cmdidRemoveCommand" priority="0x0100" type="Button">
+        <Parent guid="guidCppSourceManagerPackageCmdSet1" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Invoke RemoveCommand</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
-
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
-
     <Bitmaps>
       <!--The bitmap id is defined in a way that is a little bit different from the others:
       the declaration starts with a guid for the bitmap strip, then there is the resource id of the
@@ -118,7 +123,8 @@
       must be the actual index (1-based) of the bitmap inside the bitmap strip.-->
 
       <Bitmap guid="createFileIcon" href="Resources\CreateFileCommand.png" usedList="createFileIcon1" />
-      <Bitmap guid="createFolderIcon" href="Resources\CreateFolderCommand.png" usedList="createFolderIcon1" />
+      <Bitmap guid="defaultIcons" href="Resources\Default.png" usedList="defaultIcons1,defaultIcons2,defaultIcons3,defaultIcons4" />
+      <Bitmap guid="guidImages" href="Commands\Resources\RemoveCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
 
@@ -158,7 +164,7 @@
       <Parent guid="guidCppSourceManagerPackageCmdSet" id="GroupAbout" />
     </CommandPlacement>
 
-    <CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="CreateFolderCommandId" priority="0x0002">
+    <CommandPlacement guid="guidCppSourceManagerPackageCmdSet" id="RemoveCommandId" priority="0x0002">
       <Parent guid="guidCppSourceManagerPackageCmdSet" id="GroupCommands" />
     </CommandPlacement>
 
@@ -167,6 +173,7 @@
   <Symbols>
 
     <!--This is the package guid.-->
+    <!--Make sure to set this as CommandSet GUID when creating a custom Command-->
     <GuidSymbol name="guidCppSourceManagerPackage" value="{c0132cd9-d9ec-48c7-a214-30fbb77eb23c}" />
 
     <!--This is the guid used to group the menu commands together-->
@@ -179,23 +186,35 @@
       <!--Submenus-->
       <IDSymbol name="ProjectFolderSubmenu" value="0x0200" />
 
-      <!-- Commands --> 
+      <!-- Commands -->
       <IDSymbol name="CreateFileCommandId" value="0x0101" />
-      <IDSymbol name="CreateFolderCommandId" value="0x0102" />
+      <IDSymbol name="RemoveCommandId" value="0x0102" />
       <IDSymbol name="HelpCommandId" value="0x0103" />
     </GuidSymbol>
 
-    <GuidSymbol name="testIcons" value="{102e4b0c-14c5-4c27-9e81-bd8e3edbdd8a}">
-      <IDSymbol name="createFileImgIco1" value="1" />
-      <IDSymbol name="createFileImgIco2" value="2" />
+    <GuidSymbol name="defaultIcons" value="{102e4b0c-14c5-4c27-9e81-bd8e3edbdd8a}">
+      <IDSymbol name="defaultIcons1" value="1" />
+      <IDSymbol name="defaultIcons2" value="2" />
+      <IDSymbol name="defaultIcons3" value="3" />
+      <IDSymbol name="defaultIcons4" value="4" />
     </GuidSymbol>
 
     <GuidSymbol name="createFileIcon" value="{202e4b0c-14c5-4c27-9e81-bd8e3edbdd8a}">
       <IDSymbol name="createFileIcon1" value="1" />
     </GuidSymbol>
-
-    <GuidSymbol name="createFolderIcon" value="{212e4b0c-14c5-4c27-9e81-bd8e3edbdd8a}">
-      <IDSymbol name="createFolderIcon1" value="1" />
+  
+    <GuidSymbol value="{623a668d-b64c-4e21-b406-8a13fbbdabf2}" name="guidCppSourceManagerPackageCmdSet1">
+      <IDSymbol value="4128" name="MyMenuGroup" />
+      <IDSymbol value="256" name="cmdidRemoveCommand" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{5d9412bf-fc23-4dbd-a95b-5b0f477e4480}" name="guidImages">
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

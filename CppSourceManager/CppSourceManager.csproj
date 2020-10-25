@@ -92,6 +92,10 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+    <Content Include="logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\CreateFileCommand.png" />
     <Content Include="index.html" />
     <Content Include="Resources\CppSourceManagerPackage.ico" />

@@ -77,6 +77,7 @@ namespace CppSourceManager
             await CppSourceManager.Commands.CreateFileCommand.InitializeAsync(this);
             ms_DTE = this.GetService(typeof(DTE)) as DTE2;
             Logger.Initialize(this, "C++ File Manager");
+            await CppSourceManager.Commands.RemoveCommand.InitializeAsync(this);
         }
 
         #endregion
