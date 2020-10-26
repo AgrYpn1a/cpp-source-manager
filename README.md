@@ -1,6 +1,7 @@
 # C++ Source Manager
 ### Supported VS versions
 If a version is supported it means that the plugin is tested and guaranteed to work with the version. This does not mean it won't work with other versions of VS. Versions:
+* VS2017
 * VS2019
 
 ### Overview
